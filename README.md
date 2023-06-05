@@ -1,27 +1,84 @@
 # Graph Endpoint with Serverless CLI, Apolo Server, and AWS Lambda
 
-documentation on how to set one of these up comming soon
+documentation on how to set one of these up is in progress so if you notice something missing or incorrect please open an issue.
 
 ## Getting Started
 
-### Prerequisites
+<br />
 
-To replicate this type of endpoing you will need to have serverless cli installed (globally is best)
+### AWS CLI
+
+<br />
+
+You will need to install and configure the AWS CLI v2 to deploy this endpoint. Instructions and full documentation on the aws CLI can be found at: [AWS CLI 2](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-configure-quickstart-config) </br>
+see below for OS Specific installer packages and instructions
+
+<br />
+
+#### Install the AWS CLI
+
+- Windows: for windows users you will need to download and run the
+  [AWS CLI 2 MSI Installer](https://awscli.amazonaws.com/AWSCLIV2.msi)
+
+- MacOS: for MacOS users if the cli installation mathod does not work or you prefer to use an installer package you will need to download and run the
+  [AWS CLI 2 PKG Installer](https://awscli.amazonaws.com/AWSCLIV2.pkg)
+
+- Linux: for linux users if the cli installation mathod does not work or you prefer to use a manual installation method you will need to download and run the
+  [AWS CLI 2 ZIP Installer](https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip)
+
+to confirm the CLI is installed run the following command in your terminal
+
+```
+aws --version
+```
+
+and you should see something like this
+
+```
+aws-cli/2.0.30 Python/3.7.4 Darwin/19.6.0 botocore/2.0.0dev31
+```
+
+Finally you will need to configure the CLI with your AWS credentials. For full details on how to do this refer to this documentation found at the top of the page and look for "Configuring the AWS CLI" </br>
+
+The short version is you will need to run the configure command in your terminal and follow the prompts. Be sure to have the following information on hand:
+
+- AWS Access Key ID
+- AWS Secret Access Key
+- Default region name (typically this is us-east-1 for us)
+- Default output format (typically this is json)
+
+```
+aws configure
+```
+
+Additionally it is best practice to set up an aditional AWS CLI Profile specifically for serverless to use for deployment of your endpoint. To do this you will need to have an AWS account and an IAM user with the following permissions policies attached (this is for serverless cli to deploy the endpoint, try to avoid using your admin account if possible):
+
+- AWSLambda_FullAccess
+- AWSCodeDeployRoleForLambda
+- AWSCloudFormationFullAccess
+- AmazonS3FullAccess
+
+These policies and permissions groups will likely change in the future as we build out custom policies and roles so alwasy check with the team/current aws admin for the most up to date information.
+
+<br />
+
+### Serverless CLI
+
+<br />
+
+TLast thing to install is the serverless CLI. This is what we will use to deploy our endpoint to AWS. To install the serverless CLI run the following command in your terminal
 
 ```
 npm install -g serverless
 ```
 
-and it will require you to the AWS CLI 2 installed and configured
+in the serverless.yml file change the name on the first line from apollo-lambda to whatever you want to call your endpoint. This will be the name of the endpoint in AWS and the serverlessx cli will use this name to create a lambda function, S3 Bucket, API Gateway, and Application Stack. </br>
 
-[AWS CLI Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-configure-quickstart-config)
+download this repo as a .zip - initilize a new repository for your endpoint - and finally run
 
-after those 2 are installed and setup, download this repo as a .zip - initilize a new repository for your endpoint - and finally run 
 ```
 serverless deploy
 ```
-
-
 
 ### Dependancy Docs
 
