@@ -1,11 +1,12 @@
-service: apollo-lambda
+service: apollo-lambda-2
+frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs16.x
   httpApi:
     cors: true
 functions:
-  graphql:
+  graphql-test-2:
     # Make sure your file path is correct!
     # (e.g., if your file is in the root folder use server.graphqlHandler )
     # The format is: <FILENAME>.<HANDLER>
@@ -14,7 +15,6 @@ functions:
       - httpApi:
           path: /
           method: POST
-      - httpApi:
-          path: /
-          method: GET
-
+      - s3:
+          bucket: apollo-lambda-dev-serverlessdeploymentbucket-i4h5col7jyjy
+          existing: true
