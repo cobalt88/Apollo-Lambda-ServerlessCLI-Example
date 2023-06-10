@@ -1,498 +1,453 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "The AWS CloudFormation template for this Serverless application",
-  "Resources": {
-    "ServerlessDeploymentBucket": {
-      "Type": "AWS::S3::Bucket",
-      "Properties": {
-        "BucketEncryption": {
-          "ServerSideEncryptionConfiguration": [
-            {
-              "ServerSideEncryptionByDefault": {
-                "SSEAlgorithm": "AES256"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "ServerlessDeploymentBucketPolicy": {
-      "Type": "AWS::S3::BucketPolicy",
-      "Properties": {
-        "Bucket": {
-          "Ref": "ServerlessDeploymentBucket"
-        },
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "s3:*",
-              "Effect": "Deny",
-              "Principal": "*",
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":s3:::",
-                      {
-                        "Ref": "ServerlessDeploymentBucket"
-                      },
-                      "/*"
-                    ]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":s3:::",
-                      {
-                        "Ref": "ServerlessDeploymentBucket"
-                      }
-                    ]
-                  ]
-                }
-              ],
-              "Condition": {
-                "Bool": {
-                  "aws:SecureTransport": false
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
-    "GraphqlDashtestDash2LogGroup": {
-      "Type": "AWS::Logs::LogGroup",
-      "Properties": {
-        "LogGroupName": "/aws/lambda/apollo-lambda-2-dev-graphql-test-2"
-      }
-    },
-    "IamRoleLambdaExecution": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "lambda.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Policies": [
-          {
-            "PolicyName": {
-              "Fn::Join": [
-                "-",
-                [
-                  "apollo-lambda-2",
-                  "dev",
-                  "lambda"
-                ]
-              ]
-            },
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogStream",
-                    "logs:CreateLogGroup",
-                    "logs:TagResource"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/apollo-lambda-2-dev*:*"
-                    }
-                  ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:PutLogEvents"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/apollo-lambda-2-dev*:*:*"
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ],
-        "Path": "/",
-        "RoleName": {
-          "Fn::Join": [
-            "-",
-            [
-              "apollo-lambda-2",
-              "dev",
-              {
-                "Ref": "AWS::Region"
-              },
-              "lambdaRole"
-            ]
-          ]
-        }
-      }
-    },
-    "GraphqlDashtestDash2LambdaFunction": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": {
-            "Ref": "ServerlessDeploymentBucket"
-          },
-          "S3Key": "serverless/apollo-lambda-2/dev/1686172418967-2023-06-07T21:13:38.967Z/apollo-lambda-2.zip"
-        },
-        "Handler": "src/server.graphqlHandler",
-        "Runtime": "nodejs16.x",
-        "FunctionName": "apollo-lambda-2-dev-graphql-test-2",
-        "MemorySize": 1024,
-        "Timeout": 6,
-        "Role": {
-          "Fn::GetAtt": [
-            "IamRoleLambdaExecution",
-            "Arn"
-          ]
-        }
-      },
-      "DependsOn": [
-        "GraphqlDashtestDash2LogGroup"
-      ]
-    },
-    "GraphqlDashtestDash2LambdaVersionsRahryfAruE5P9tAP0zJv3hs44GDOFwIS0XqrI0": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "GraphqlDashtestDash2LambdaFunction"
-        },
-        "CodeSha256": "dRcRRIohTgB0VVrQX0tLEBn1MAohPwHn8bpvYx+9Nhk="
-      }
-    },
-    "GraphqlDashtestDash2CustomS31": {
-      "Type": "Custom::S3",
-      "Version": 1,
-      "DependsOn": [
-        "GraphqlDashtestDash2LambdaFunction",
-        "CustomDashresourceDashexistingDashs3LambdaFunction"
-      ],
-      "Properties": {
-        "ServiceToken": {
-          "Fn::GetAtt": [
-            "CustomDashresourceDashexistingDashs3LambdaFunction",
-            "Arn"
-          ]
-        },
-        "FunctionName": "apollo-lambda-2-dev-graphql-test-2",
-        "BucketName": "apollo-lambda-dev-serverlessdeploymentbucket-i4h5col7jyjy",
-        "BucketConfigs": [
-          {
-            "Event": "s3:ObjectCreated:*",
-            "Rules": []
-          }
-        ]
-      }
-    },
-    "IamRoleCustomResourcesLambdaExecution": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "lambda.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Policies": [
-          {
-            "PolicyName": {
-              "Fn::Join": [
-                "-",
-                [
-                  "dev",
-                  "apollo-lambda-2",
-                  "custom-resources-lambda"
-                ]
-              ]
-            },
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Resource": {
-                    "Fn::Join": [
-                      ":",
-                      [
-                        "arn",
-                        {
-                          "Ref": "AWS::Partition"
-                        },
-                        "s3",
-                        "",
-                        "",
-                        "apollo-lambda-dev-serverlessdeploymentbucket-i4h5col7jyjy"
-                      ]
-                    ]
-                  },
-                  "Action": [
-                    "s3:PutBucketNotification",
-                    "s3:GetBucketNotification"
-                  ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Resource": {
-                    "Fn::Join": [
-                      ":",
-                      [
-                        "arn",
-                        {
-                          "Ref": "AWS::Partition"
-                        },
-                        "lambda",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        {
-                          "Ref": "AWS::AccountId"
-                        },
-                        "function",
-                        "*"
-                      ]
-                    ]
-                  },
-                  "Action": [
-                    "lambda:AddPermission",
-                    "lambda:RemovePermission"
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "CustomDashresourceDashexistingDashs3LambdaFunction": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": {
-            "Ref": "ServerlessDeploymentBucket"
-          },
-          "S3Key": "serverless/apollo-lambda-2/dev/1686172418967-2023-06-07T21:13:38.967Z/custom-resources.zip"
-        },
-        "FunctionName": "apollo-lambda-2-dev-custom-resource-existing-s3",
-        "Handler": "s3/handler.handler",
-        "MemorySize": 1024,
-        "Runtime": "nodejs16.x",
-        "Timeout": 180,
-        "Role": {
-          "Fn::GetAtt": [
-            "IamRoleCustomResourcesLambdaExecution",
-            "Arn"
-          ]
-        }
-      },
-      "DependsOn": [
-        "IamRoleCustomResourcesLambdaExecution"
-      ]
-    },
-    "HttpApi": {
-      "Type": "AWS::ApiGatewayV2::Api",
-      "Properties": {
-        "Name": "dev-apollo-lambda-2",
-        "ProtocolType": "HTTP",
-        "CorsConfiguration": {
-          "AllowHeaders": [
-            "Content-Type",
-            "X-Amz-Date",
-            "Authorization",
-            "X-Api-Key",
-            "X-Amz-Security-Token",
-            "X-Amz-User-Agent",
-            "X-Amzn-Trace-Id"
-          ],
-          "AllowMethods": [
-            "OPTIONS",
-            "POST"
-          ],
-          "AllowOrigins": [
-            "*"
-          ]
-        }
-      }
-    },
-    "HttpApiStage": {
-      "Type": "AWS::ApiGatewayV2::Stage",
-      "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
-        },
-        "StageName": "$default",
-        "AutoDeploy": true,
-        "DefaultRouteSettings": {
-          "DetailedMetricsEnabled": false
-        }
-      }
-    },
-    "GraphqlDashtestDash2LambdaPermissionHttpApi": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "GraphqlDashtestDash2LambdaFunction",
-            "Arn"
-          ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition"
-              },
-              ":execute-api:",
-              {
-                "Ref": "AWS::Region"
-              },
-              ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
-              ":",
-              {
-                "Ref": "HttpApi"
-              },
-              "/*"
-            ]
-          ]
-        }
-      }
-    },
-    "HttpApiIntegrationGraphqlDashtestDash2": {
-      "Type": "AWS::ApiGatewayV2::Integration",
-      "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": {
-          "Fn::GetAtt": [
-            "GraphqlDashtestDash2LambdaFunction",
-            "Arn"
-          ]
-        },
-        "PayloadFormatVersion": "2.0",
-        "TimeoutInMillis": 30000
-      }
-    },
-    "HttpApiRoutePost": {
-      "Type": "AWS::ApiGatewayV2::Route",
-      "Properties": {
-        "ApiId": {
-          "Ref": "HttpApi"
-        },
-        "RouteKey": "POST /",
-        "Target": {
-          "Fn::Join": [
-            "/",
-            [
-              "integrations",
-              {
-                "Ref": "HttpApiIntegrationGraphqlDashtestDash2"
-              }
-            ]
-          ]
-        }
-      },
-      "DependsOn": "HttpApiIntegrationGraphqlDashtestDash2"
-    }
-  },
-  "Outputs": {
-    "ServerlessDeploymentBucketName": {
-      "Value": {
-        "Ref": "ServerlessDeploymentBucket"
-      },
-      "Export": {
-        "Name": "sls-apollo-lambda-2-dev-ServerlessDeploymentBucketName"
-      }
-    },
-    "GraphqlDashtestDash2LambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "GraphqlDashtestDash2LambdaVersionsRahryfAruE5P9tAP0zJv3hs44GDOFwIS0XqrI0"
-      },
-      "Export": {
-        "Name": "sls-apollo-lambda-2-dev-GraphqlDashtestDash2LambdaFunctionQualifiedArn"
-      }
-    },
-    "HttpApiId": {
-      "Description": "Id of the HTTP API",
-      "Value": {
-        "Ref": "HttpApi"
-      },
-      "Export": {
-        "Name": "sls-apollo-lambda-2-dev-HttpApiId"
-      }
-    },
-    "HttpApiUrl": {
-      "Description": "URL of the HTTP API",
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "https://",
-            {
-              "Ref": "HttpApi"
-            },
-            ".execute-api.",
-            {
-              "Ref": "AWS::Region"
-            },
-            ".",
-            {
-              "Ref": "AWS::URLSuffix"
-            }
-          ]
-        ]
-      },
-      "Export": {
-        "Name": "sls-apollo-lambda-2-dev-HttpApiUrl"
-      }
-    }
-  }
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "The AWS CloudFormation template for this Serverless application",
+	"Resources": {
+		"ServerlessDeploymentBucket": {
+			"Type": "AWS::S3::Bucket",
+			"Properties": {
+				"BucketEncryption": {
+					"ServerSideEncryptionConfiguration": [
+						{
+							"ServerSideEncryptionByDefault": {
+								"SSEAlgorithm": "AES256"
+							}
+						}
+					]
+				}
+			}
+		},
+		"ServerlessDeploymentBucketPolicy": {
+			"Type": "AWS::S3::BucketPolicy",
+			"Properties": {
+				"Bucket": {
+					"Ref": "ServerlessDeploymentBucket"
+				},
+				"PolicyDocument": {
+					"Statement": [
+						{
+							"Action": "s3:*",
+							"Effect": "Deny",
+							"Principal": "*",
+							"Resource": [
+								{
+									"Fn::Join": [
+										"",
+										[
+											"arn:",
+											{
+												"Ref": "AWS::Partition"
+											},
+											":s3:::",
+											{
+												"Ref": "ServerlessDeploymentBucket"
+											},
+											"/*"
+										]
+									]
+								},
+								{
+									"Fn::Join": [
+										"",
+										[
+											"arn:",
+											{
+												"Ref": "AWS::Partition"
+											},
+											":s3:::",
+											{
+												"Ref": "ServerlessDeploymentBucket"
+											}
+										]
+									]
+								}
+							],
+							"Condition": {
+								"Bool": {
+									"aws:SecureTransport": false
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		"GraphqlDashtestDash2LogGroup": {
+			"Type": "AWS::Logs::LogGroup",
+			"Properties": {
+				"LogGroupName": "/aws/lambda/apollo-lambda-2-dev-graphql-test-2"
+			}
+		},
+		"IamRoleLambdaExecution": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": ["lambda.amazonaws.com"]
+							},
+							"Action": ["sts:AssumeRole"]
+						}
+					]
+				},
+				"Policies": [
+					{
+						"PolicyName": {
+							"Fn::Join": ["-", ["apollo-lambda-2", "dev", "lambda"]]
+						},
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"logs:CreateLogStream",
+										"logs:CreateLogGroup",
+										"logs:TagResource"
+									],
+									"Resource": [
+										{
+											"Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/apollo-lambda-2-dev*:*"
+										}
+									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": ["logs:PutLogEvents"],
+									"Resource": [
+										{
+											"Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/apollo-lambda-2-dev*:*:*"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"Path": "/",
+				"RoleName": {
+					"Fn::Join": [
+						"-",
+						[
+							"apollo-lambda-2",
+							"dev",
+							{
+								"Ref": "AWS::Region"
+							},
+							"lambdaRole"
+						]
+					]
+				}
+			}
+		},
+		"GraphqlDashtestDash2LambdaFunction": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"Code": {
+					"S3Bucket": {
+						"Ref": "ServerlessDeploymentBucket"
+					},
+					"S3Key": "serverless/apollo-lambda/dev/1686234663340-2023-06-08T14:31:03.340Z/apollo-lambda.zip"
+				},
+				"Handler": "src/server.graphqlHandler",
+				"Runtime": "nodejs16.x",
+				"FunctionName": "apollo-lambda-2-dev-graphql-test-2",
+				"MemorySize": 1024,
+				"Timeout": 6,
+				"Role": {
+					"Fn::GetAtt": ["IamRoleLambdaExecution", "Arn"]
+				}
+			},
+			"DependsOn": ["GraphqlDashtestDash2LogGroup"]
+		},
+		"GraphqlLambdaVersion4XlltuizZ2EEXtFG8Bm2AfhvHaj6PDdgtFiAkWjr8": {
+			"Type": "AWS::Lambda::Version",
+			"DeletionPolicy": "Retain",
+			"Properties": {
+				"FunctionName": {
+					"Ref": "GraphqlDashtestDash2LambdaFunction"
+				},
+				"CodeSha256": "VUPjd7egJhX9iAtHebiNve235LjKaXj6OeoSlIFAzVo="
+			}
+		},
+		"GraphqlDashtestDash2CustomS31": {
+			"Type": "Custom::S3",
+			"Version": 1,
+			"DependsOn": [
+				"GraphqlDashtestDash2LambdaFunction",
+				"CustomDashresourceDashexistingDashs3LambdaFunction"
+			],
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": [
+						"CustomDashresourceDashexistingDashs3LambdaFunction",
+						"Arn"
+					]
+				},
+				"FunctionName": "apollo-lambda-2-dev-graphql-test-2",
+				"BucketName": "apollo-lambda-dev-serverlessdeploymentbucket-i4h5col7jyjy",
+				"BucketConfigs": [
+					{
+						"Event": "s3:ObjectCreated:*",
+						"Rules": []
+					}
+				]
+			}
+		},
+		"IamRoleCustomResourcesLambdaExecution": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": ["lambda.amazonaws.com"]
+							},
+							"Action": ["sts:AssumeRole"]
+						}
+					]
+				},
+				"Policies": [
+					{
+						"PolicyName": {
+							"Fn::Join": [
+								"-",
+								["dev", "apollo-lambda-2", "custom-resources-lambda"]
+							]
+						},
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Resource": {
+										"Fn::Join": [
+											":",
+											[
+												"arn",
+												{
+													"Ref": "AWS::Partition"
+												},
+												"s3",
+												"",
+												"",
+												"apollo-lambda-dev-serverlessdeploymentbucket-i4h5col7jyjy"
+											]
+										]
+									},
+									"Action": [
+										"s3:PutBucketNotification",
+										"s3:GetBucketNotification"
+									]
+								},
+								{
+									"Effect": "Allow",
+									"Resource": {
+										"Fn::Join": [
+											":",
+											[
+												"arn",
+												{
+													"Ref": "AWS::Partition"
+												},
+												"lambda",
+												{
+													"Ref": "AWS::Region"
+												},
+												{
+													"Ref": "AWS::AccountId"
+												},
+												"function",
+												"*"
+											]
+										]
+									},
+									"Action": ["lambda:AddPermission", "lambda:RemovePermission"]
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"CustomDashresourceDashexistingDashs3LambdaFunction": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"Code": {
+					"S3Bucket": {
+						"Ref": "ServerlessDeploymentBucket"
+					},
+					"S3Key": "serverless/apollo-lambda-2/dev/1686172418967-2023-06-07T21:13:38.967Z/custom-resources.zip"
+				},
+				"FunctionName": "apollo-lambda-2-dev-custom-resource-existing-s3",
+				"Handler": "s3/handler.handler",
+				"MemorySize": 1024,
+				"Runtime": "nodejs16.x",
+				"Timeout": 180,
+				"Role": {
+					"Fn::GetAtt": ["IamRoleCustomResourcesLambdaExecution", "Arn"]
+				}
+			},
+			"DependsOn": ["IamRoleCustomResourcesLambdaExecution"]
+		},
+		"HttpApi": {
+			"Type": "AWS::ApiGatewayV2::Api",
+			"Properties": {
+				"Name": "dev-apollo-lambda-2",
+				"ProtocolType": "HTTP",
+				"CorsConfiguration": {
+					"AllowHeaders": [
+						"Content-Type",
+						"X-Amz-Date",
+						"Authorization",
+						"X-Api-Key",
+						"X-Amz-Security-Token",
+						"X-Amz-User-Agent",
+						"X-Amzn-Trace-Id"
+					],
+					"AllowMethods": ["OPTIONS", "POST"],
+					"AllowOrigins": ["*"]
+				}
+			}
+		},
+		"HttpApiStage": {
+			"Type": "AWS::ApiGatewayV2::Stage",
+			"Properties": {
+				"ApiId": {
+					"Ref": "HttpApi"
+				},
+				"StageName": "$default",
+				"AutoDeploy": true,
+				"DefaultRouteSettings": {
+					"DetailedMetricsEnabled": false
+				}
+			}
+		},
+		"GraphqlDashtestDash2LambdaPermissionHttpApi": {
+			"Type": "AWS::Lambda::Permission",
+			"Properties": {
+				"FunctionName": {
+					"Fn::GetAtt": ["GraphqlDashtestDash2LambdaFunction", "Arn"]
+				},
+				"Action": "lambda:InvokeFunction",
+				"Principal": "apigateway.amazonaws.com",
+				"SourceArn": {
+					"Fn::Join": [
+						"",
+						[
+							"arn:",
+							{
+								"Ref": "AWS::Partition"
+							},
+							":execute-api:",
+							{
+								"Ref": "AWS::Region"
+							},
+							":",
+							{
+								"Ref": "AWS::AccountId"
+							},
+							":",
+							{
+								"Ref": "HttpApi"
+							},
+							"/*"
+						]
+					]
+				}
+			}
+		},
+		"HttpApiIntegrationGraphqlDashtestDash2": {
+			"Type": "AWS::ApiGatewayV2::Integration",
+			"Properties": {
+				"ApiId": {
+					"Ref": "HttpApi"
+				},
+				"IntegrationType": "AWS_PROXY",
+				"IntegrationUri": {
+					"Fn::GetAtt": ["GraphqlDashtestDash2LambdaFunction", "Arn"]
+				},
+				"PayloadFormatVersion": "2.0",
+				"TimeoutInMillis": 30000
+			}
+		},
+		"HttpApiRoutePost": {
+			"Type": "AWS::ApiGatewayV2::Route",
+			"Properties": {
+				"ApiId": {
+					"Ref": "HttpApi"
+				},
+				"RouteKey": "POST /",
+				"Target": {
+					"Fn::Join": [
+						"/",
+						[
+							"integrations",
+							{
+								"Ref": "HttpApiIntegrationGraphqlDashtestDash2"
+							}
+						]
+					]
+				}
+			},
+			"DependsOn": "HttpApiIntegrationGraphqlDashtestDash2"
+		}
+	},
+	"Outputs": {
+		"ServerlessDeploymentBucketName": {
+			"Value": {
+				"Ref": "ServerlessDeploymentBucket"
+			},
+			"Export": {
+				"Name": "sls-apollo-lambda-2-dev-ServerlessDeploymentBucketName"
+			}
+		},
+		"GraphqlDashtestDash2LambdaFunctionQualifiedArn": {
+			"Description": "Current Lambda function version",
+			"Value": {
+				"Ref": "GraphqlLambdaVersion4XlltuizZ2EEXtFG8Bm2AfhvHaj6PDdgtFiAkWjr8"
+			},
+			"Export": {
+				"Name": "sls-apollo-lambda-2-dev-GraphqlDashtestDash2LambdaFunctionQualifiedArn"
+			}
+		},
+		"HttpApiId": {
+			"Description": "Id of the HTTP API",
+			"Value": {
+				"Ref": "HttpApi"
+			},
+			"Export": {
+				"Name": "sls-apollo-lambda-2-dev-HttpApiId"
+			}
+		},
+		"HttpApiUrl": {
+			"Description": "URL of the HTTP API",
+			"Value": {
+				"Fn::Join": [
+					"",
+					[
+						"https://",
+						{
+							"Ref": "HttpApi"
+						},
+						".execute-api.",
+						{
+							"Ref": "AWS::Region"
+						},
+						".",
+						{
+							"Ref": "AWS::URLSuffix"
+						}
+					]
+				]
+			},
+			"Export": {
+				"Name": "sls-apollo-lambda-2-dev-HttpApiUrl"
+			}
+		}
+	}
 }
