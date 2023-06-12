@@ -1,4 +1,4 @@
-service: apollo-lambda-2
+service: apollo-lambda-2-example
 frameworkVersion: "3"
 provider:
   name: aws
